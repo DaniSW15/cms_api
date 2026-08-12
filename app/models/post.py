@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from app.models.category import Category
     from app.models.tag import Tag
     from app.models.comment import Comment
+    from app.models.media import Media
 
 
 class Post(Base):
@@ -55,3 +56,11 @@ class Post(Base):
     comments: Mapped[List["Comment"]] = relationship(
         "Comment", back_populates="post", cascade="all, delete-orphan"
     )
+
+    # NUEVO: Foreign Key a imagen destacada (opcional)
+    featured_image_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("media.id"), nullable=True
+    )
+
+    # ... y en las relaciones, agrega:
+    featured_image: Mapped[Optional["Media"]] = relationship("Media", lazy="joined")

@@ -20,7 +20,7 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     category_id: Optional[int] = None
     tag_ids: Optional[List[int]] = []  # IDs de tags existentes a asignar
-    pass
+    featured_image_id: Optional[int] = None  # <-- nuevo
 
 
 class PostUpdate(PostBase):
@@ -35,6 +35,7 @@ class PostUpdate(PostBase):
     published_at: Optional[datetime] = None
     category_id: Optional[int] = None
     tag_ids: Optional[List[int]] = None
+    featured_image_id: Optional[int] = None
 
 
 class PostResponse(PostBase):

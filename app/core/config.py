@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -18,9 +19,23 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
+    # Nuevos campos para media
+    UPLOAD_DIR: str = "uploads"
+    MAX_UPLOAD_SIZE: int = 5 * 1024 * 1024  # 5 MB en bytes
+    ALLOWED_IMAGE_TYPES: list[str] = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+    ]
+
     class Config:
         env_file = ".env"
         case_sensitive = True
+        
+    @property
+    def upload_path(self) -> Path:
+        return Path(self.UPLOAD_DIR)
 
 
 @lru_cache()
