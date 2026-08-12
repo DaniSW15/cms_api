@@ -1,10 +1,11 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+import math
 from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.post import Post
-from app.schemas.post import PostCreate, PostUpdate, PostResponse
+from app.schemas.post import PostCreate, PostUpdate, PostResponse, PostPagedResponse
 from app.services.post_service import PostService
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
@@ -25,18 +26,47 @@ def create_post(
     return post
 
 
-@router.get("/", response_model=List[PostResponse])
+@router.get("/", response_model=PostPagedResponse)
 def list_posts(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=500),
-    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    search: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    category_id: Optional[int] = Query(None),
+    author_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db)
 ):
     """
-    Listar todos los posts. Público (no requiere auth).
-    Soporta paginación con skip y limit.
+    Listar posts con paginación, búsqueda y filtros.
+    
+    - page: número de página (empieza en 1)
+    - size: cantidad por página
+    - search: busca en título y contenido
+    - status: draft | published | archived
+    - category_id: filtrar por categoría
+    - author_id: filtrar por autor
     """
     service = PostService(db)
-    return service.get_posts(skip=skip, limit=limit)
+    skip = (page - 1) * size
+    
+    items, total = service.search_posts(
+        skip=skip,
+        limit=size,
+        search=search,
+        status=status,
+        category_id=category_id,
+        author_id=author_id,
+    )
+    
+    pages = math.ceil(total / size) if total > 0 else 0
+    
+    return PostPagedResponse(
+        items=items,
+        total=total,
+        page=page,
+        size=size,
+        pages=pages,
+    )
 
 
 @router.get("/{post_id}", response_model=PostResponse)

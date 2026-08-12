@@ -70,3 +70,21 @@ class PostService:
 
     def delete_post(self, post: Post) -> None:
         self.repo.delete(post)
+
+    def search_posts(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        search: str = None,
+        status: str = None,
+        category_id: int = None,
+        author_id: int = None,
+    ):
+        return self.repo.search(
+            skip=skip,
+            limit=limit,
+            search=search,
+            status=status,
+            category_id=category_id,
+            author_id=author_id,
+        )

@@ -1,8 +1,12 @@
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy import String, Boolean, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base_class import Base
+
+if TYPE_CHECKING:
+    from app.models.post import Post
+    from app.models.comment import Comment
 
 
 class User(Base):
@@ -24,3 +28,5 @@ class User(Base):
         DateTime, default=datetime.now, onupdate=datetime.now
     )
     posts: Mapped[list["Post"]] = relationship("Post", back_populates="author")
+    # Dentro de la clase User, agrega esto junto a posts:
+    comments: Mapped[List["Comment"]] = relationship("Comment", back_populates="author")

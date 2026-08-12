@@ -1,5 +1,6 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import or_ 
 from app.models.post import Post
 
 
@@ -33,3 +34,49 @@ class PostRepository:
     def delete(self, db_obj: Post) -> None:
         self.db.delete(db_obj)
         self.db.commit()
+
+    def search(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        search: str = None,
+        status: str = None,
+        category_id: int = None,
+        tag_ids: list = None,
+        author_id: int = None,
+    ):
+        """
+        Búsqueda y filtros dinámicos. Solo aplica filtros si se envían.
+        """
+        query = self.db.query(Post)
+
+        # Filtro por texto (busca en título y contenido)
+        if search:
+            search_filter = or_(
+                Post.title.ilike(f"%{search}%"), Post.content.ilike(f"%{search}%")
+            )
+            query = query.filter(search_filter)
+
+        # Filtro por status
+        if status:
+            query = query.filter(Post.status == status)
+
+        # Filtro por categoría
+        if category_id:
+            query = query.filter(Post.category_id == category_id)
+
+        # Filtro por autor
+        if author_id:
+            query = query.filter(Post.author_id == author_id)
+
+        # Filtro por tags (mucho más avanzado, lo simplificamos)
+        # Para filtrar por tags necesitamos un join, lo dejamos para más adelante
+        # o puedes agregarlo como bonus
+
+        # Contar total antes de paginar
+        total = query.count()
+
+        # Aplicar paginación
+        items = query.offset(skip).limit(limit).all()
+
+        return items, total

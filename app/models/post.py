@@ -1,8 +1,14 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import TYPE_CHECKING, Optional, List
 from sqlalchemy import String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base_class import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.category import Category
+    from app.models.tag import Tag
+    from app.models.comment import Comment
 
 
 class Post(Base):
@@ -43,4 +49,9 @@ class Post(Base):
         "Tag",
         secondary="post_tag",  # nombre de la tabla intermedia como string
         back_populates="posts",
+    )
+
+    # Dentro de la clase Post, agrega esto junto a las otras relaciones:
+    comments: Mapped[List["Comment"]] = relationship(
+        "Comment", back_populates="post", cascade="all, delete-orphan"
     )

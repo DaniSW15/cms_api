@@ -4,6 +4,8 @@ from typing import Optional, List
 from app.schemas.user import UserSummary
 from app.schemas.category import CategoryResponse
 from app.schemas.tag import TagResponse
+from app.schemas.common import PagedResponse
+
 
 class PostBase(BaseModel):
     """Campos comunes pa todos los schemas de post."""
@@ -50,3 +52,7 @@ class PostResponse(PostBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PostPagedResponse(PagedResponse[PostResponse]):
+    pass
