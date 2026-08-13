@@ -10,9 +10,46 @@ services:
       POSTGRES_PASSWORD: cms_password
       POSTGRES_DB: cms_db
     ports:
-      - "5433:5432" # Puerto de tu PC : Puerto del contenedor
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U cms_user -d cms_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cms_api
+    restart: always
+    environment:
+      # La URL apunta al servicio 'db', NO a localhost
+      DATABASE_URL: postgresql://cms_user:cms_password@db:5433/cms_db
+      SECRET_KEY: tu-clave-super-secreta-cambia-esto-en-produccion
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+      PROJECT_NAME: CMS API
+      DEBUG: "False"
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mantiene los uploads en tu disco aunque el contenedor se reinicie
+      - ./uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo '⏳ Esperando a PostgreSQL...' &&
+        sleep 3 &&
+        echo '⚡ Corriendo migraciones...' &&
+        alembic upgrade head &&
+        echo '🚀 Iniciando FastAPI...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
 
 volumes:
   postgres_data:
