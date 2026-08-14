@@ -2,11 +2,22 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.api.v1.router import api_router
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     debug=settings.DEBUG,
     version="0.1.0",
+)
+
+
+# CORS: permite que Astro (corriendo en otro puerto) llame a tu API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4321"],  # Puerto por defecto de Astro dev
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
